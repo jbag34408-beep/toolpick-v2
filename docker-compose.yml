@@ -1,0 +1,18 @@
+# 로컬 개발용 PostgreSQL
+# 실행: docker compose up -d / 중지: docker compose stop
+# [CS] 컨테이너로 DB를 띄우면 PC에 직접 설치하지 않아도 되고, 팀원 모두 같은 버전(17)을 쓴다(환경 일치)
+services:
+  postgres:
+    image: postgres:17-alpine       # alpine: 작은 리눅스 배포판 기반이라 이미지가 가볍다
+    environment:
+      POSTGRES_DB: toolpick
+      POSTGRES_USER: toolpick
+      POSTGRES_PASSWORD: toolpick   # 로컬 전용 값. 운영 DB 비밀번호는 환경 변수(DATABASE_URL)로만 넣는다
+    ports:
+      - "5432:5432"                 # PC의 5432 포트 → 컨테이너의 5432 포트
+    volumes:
+      # 볼륨: 컨테이너를 지워도 DB 데이터가 남도록 컨테이너 밖에 저장한다
+      - toolpick-pg:/var/lib/postgresql/data
+
+volumes:
+  toolpick-pg:

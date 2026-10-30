@@ -1,0 +1,74 @@
+// Gradle 빌드 설정 (Groovy DSL)
+// v2: 웹(기본 프로필)과 배치(batch 프로필)가 같은 jar 하나를 쓴다. docs/design/v2-00-backend.md 4.1
+plugins {
+    id 'java'
+    id 'org.springframework.boot' version '4.1.2'
+    id 'io.spring.dependency-management' version '1.1.7'
+}
+
+group = 'com.toolpick'
+version = '2.0.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    set('springAiVersion', '2.0.2')
+}
+
+dependencyManagement {
+    imports {
+        // BOM: Spring AI 모듈들의 서로 맞는 버전 목록
+        mavenBom "org.springframework.ai:spring-ai-bom:${springAiVersion}"
+    }
+}
+
+dependencies {
+    // Boot 4부터 자동 설정이 기능별 모듈로 나뉘어, 기능마다 맞는 starter를 넣어야 자동 설정이 켜진다
+    implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-security-oauth2-client'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+    implementation 'org.springframework.boot:spring-boot-starter-flyway'          // flyway-core만 넣으면 Boot 4에서는 자동 실행되지 않는다
+    implementation 'org.flywaydb:flyway-database-postgresql'
+    implementation 'org.springframework.ai:spring-ai-starter-mcp-server-webmvc'
+    runtimeOnly 'org.postgresql:postgresql'
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.springframework.boot:spring-boot-starter-security-test'
+    testImplementation 'org.testcontainers:testcontainers-junit-jupiter'
+    testImplementation 'org.testcontainers:testcontainers-postgresql'
+    testImplementation 'org.wiremock:wiremock-standalone:3.13.2'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
+
+// 실행 jar(bootJar) 하나만 만든다 (Dockerfile이 jar 하나를 가정)
+tasks.named('jar') {
+    enabled = false
+}

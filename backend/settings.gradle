@@ -1,0 +1,6 @@
+plugins {
+    // 로컬에 JDK 21이 없어도 Gradle이 툴체인을 내려받는다
+    id 'org.gradle.toolchains.foojay-resolver-convention' version '1.0.0'
+}
+
+rootProject.name = 'toolpick'
