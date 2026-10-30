@@ -2,8 +2,9 @@
 # [CS] v1은 Render를 깨워 HTTP로 배치를 시작하고 60분 동안 상태를 폴링했다. v2는 배치가 별도 프로세스라
 # 실행이 곧 감시다. 종료 코드 0=완료, 1=실패(이 작업이 실패로 표시돼 메일이 온다), 2=다른 실행이 도는 중.
 #
-# 지금은 수동 실행만 연다. 웹·배치를 어디서 돌릴지(열린 결정 E3)와 전환 날(v1 배치 중지) 뒤에 schedule을 켠다.
-# 켤 때 cron은 UTC 기준이고 정시(0분)를 피한다(실행 누락 사례): '17 18 * * *' = 03:17 KST
+# 예약 실행은 GitHub schedule이 아니라 외부 cron(cron-job.org)이 매일 03:17 KST에 이 워크플로를
+# API로 실행시킨다(workflow_dispatch). v1에서 schedule이 4시간 넘게 밀리거나 빠진 사례가 있어서다.
+# 설정 방법: docs/ARCHITECTURE.md "매일 배치 예약". 같은 날 두 번 실행돼도 두 번째는 ALREADY_DONE(0)으로 끝난다.
 name: Daily batch
 
 on:
@@ -12,8 +13,11 @@ on:
       date:
         description: '배치 날짜 (YYYY-MM-DD, 비우면 오늘 KST)'
         required: false
-  # schedule:
-  #   - cron: '17 18 * * *'
+
+# 수동 실행과 외부 cron이 겹쳐도 러너에서는 하나씩만 돈다 (DB 쪽 중복 방지와 별개로 불필요한 빌드를 막는다)
+concurrency:
+  group: daily-batch
+  cancel-in-progress: false
 
 jobs:
   batch:

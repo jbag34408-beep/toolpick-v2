@@ -20,7 +20,22 @@
 
 - 웹은 외부 API를 부르지 않고 DB만 읽는다. 순위 캐시(Caffeine)는 TTL 10분이다.
 - 배치는 같은 이미지를 `SPRING_PROFILES_ACTIVE=batch`로 띄운다. 웹 서버, 보안 필터, MCP, Flyway가 꺼진 상태로 뜬다.
-- 어디서 돌릴지(웹 호스팅, 배치 실행 위치)는 아직 정하지 않았다. 지금은 `.github/workflows/daily-batch.yml`로 수동 실행만 할 수 있다.
+- 배포: 웹은 Render(`https://toolpick-v2.onrender.com`), 프론트엔드는 Vercel(`https://toolpickv2.vercel.app`, 프로젝트 `frontend-toolpick`), 배치는 GitHub Actions 러너(`daily-batch.yml`). v1은 2026-10-30에 내렸다.
+
+## 매일 배치 예약 (외부 cron)
+
+GitHub Actions의 `schedule`은 시간 보장이 없다(v1에서 03:17 예약이 07:44에 시작, 하루는 아예 누락). 그래서 외부 cron 서비스가 GitHub API로 `daily-batch.yml`을 수동 실행시킨다.
+
+| 항목 | 값 |
+| --- | --- |
+| 호출 | `POST https://api.github.com/repos/jbag34408-beep/toolpick-v2/actions/workflows/daily-batch.yml/dispatches` |
+| 헤더 | `Accept: application/vnd.github+json`, `Authorization: Bearer <토큰>`, `X-GitHub-Api-Version: 2022-11-28`, `Content-Type: application/json` |
+| 본문 | `{"ref":"main"}` |
+| 성공 응답 | 2xx (보통 204) |
+| 토큰 | Fine-grained PAT, 저장소 `toolpick-v2`만, 권한 Actions: Read and write. 만료일을 달력에 적어 두고 갱신한다 |
+| 시각 | 03:17 KST(본 실행), 05:17 KST(예비: 본 실행이 실패했으면 다시 시작, 성공했으면 ALREADY_DONE으로 끝남) |
+
+배치 시크릿(저장소 Settings → Secrets): `DATABASE_URL`(jdbc 형식), `TOOLPICK_GITHUB_TOKEN`, `GEMINI_API_KEY`, `GROQ_API_KEY`.
 
 ## 매일 배치 (`batch.DailyJob`)
 

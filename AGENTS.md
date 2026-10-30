@@ -89,8 +89,8 @@
 - 배치는 `java -jar app.jar --spring.profiles.active=batch`로 실행한다. 수동 재실행은 `--date=YYYY-MM-DD`로 날짜를 준다.
   - 종료 코드: 0은 완료 또는 이미 완료, 1은 실패, 2는 다른 실행이 도는 중이라 건너뜀.
 - 실행 환경의 제한 시간(Actions `timeout-minutes`, Cloud Run 잡 task timeout)은 `toolpick.job.stale-after`(70분)보다 짧게 둔다. 지금 `daily-batch.yml`은 65분이다.
-- 배치를 예약 실행으로 켤 때 cron은 정시(0분)를 피한다(실행 누락 사례). 03:17 KST는 `17 18 * * *`(UTC)다.
-- v1과 같은 DB를 쓰는 기간에는 v1 웹과 v1 배치 워크플로를 꺼 둔다. v1 웹이 깨어나면 실행 중인 배치 기록을 FAILED로 바꾼다.
+- 매일 배치는 외부 cron(cron-job.org)이 03:17·05:17 KST에 `daily-batch.yml`을 API로 실행시킨다. GitHub `schedule`로 바꾸지 않는다(몇 시간 밀리거나 빠진 사례). 설정은 `docs/ARCHITECTURE.md` "매일 배치 예약".
+- v1(`Toolpick1`)은 2026-10-30에 내렸고 워크플로도 모두 꺼 두었다. 같은 DB를 v2가 이어서 쓴다.
 - 환경 변수 값 끝에 줄바꿈이 들어가면 HTTP 헤더 오류가 난다. 키는 `ToolPickProperties`가 strip하지만 다른 값은 직접 확인한다.
 
 ## 8. 작업을 마칠 때
