@@ -1,0 +1,25 @@
+# backend
+backend/.gradle/
+backend/build/
+backend/bin/
+*.class
+
+# frontend
+frontend/node_modules/
+frontend/.next/
+frontend/out/
+frontend/next-env.d.ts
+frontend/*.tsbuildinfo
+
+# 환경 변수
+.env
+.env.local
+.env.*.local
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# 로컬 브라우저 확인 산출물
+.playwright-mcp/
